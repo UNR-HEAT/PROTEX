@@ -1,7 +1,7 @@
 {
   "fileType": "chemical",
   "schemaVersion": "2.0",
-  "name": "PCB-153",
+  "name": "BDE-153",
   "source": "Li et al. Environ. Sci. Technol. (2020) 54,  166–175; Li et al. ACS Environ. Au (2022) 2, 376–395",
   "properties": {
     "mustInput": {
