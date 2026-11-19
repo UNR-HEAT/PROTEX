@@ -787,10 +787,10 @@ const {ModelError}=require('../../core/modelError');
 // PubUseFunc.bas Diffusivity, in m²/h except the three model-defined
 // turbulence coefficients (which are used in the same transfer equations).
 function diffusivity(phase,molecularWeightGPerMol,temperatureK,pKaAcid,pKaBase,pH) {
-/* Calculates gas or water diffusivity using molecular weight (g/mol), temperature (K), and ionization. */
+/* Calculates gas or water diffusivity using molar mass (g/mol), temperature (K), and ionization. */
 
   if(!(molecularWeightGPerMol>0&&temperatureK>0))
-    throw new ModelError('DIFFUSIVITY_INPUT','Molecular weight and temperature must be positive');
+    throw new ModelError('DIFFUSIVITY_INPUT','Molar mass and temperature must be positive');
   const mw=molecularWeightGPerMol,t=temperatureK,scale=(t/293.15)**1.75;
   switch(phase){
     case 'gas':return 1.55/mw**.65*3600*.0001*(1-fractionIonized(pKaAcid,pKaBase,pH))*scale;
@@ -906,20 +906,20 @@ const fields={
     ['deltaUoaJPerMol','ΔUOA (J mol⁻¹)']],
   coreRates:[['kAirCm3PerMoleculeS','Reaction with gas-phase OH radicals (cm³ molecule⁻¹ s⁻¹)'],
     ['kBiodegradationPerHour','Biodegradation (h⁻¹)'],
-    ['kAquaticPerHour','Aquatic organism biotransformation, normalized to 10 g (h⁻¹)'],
-    ['kMammalianPerHour','Mammalian biotransformation, normalized to 70 kg (h⁻¹)'],
+    ['kAquaticPerHour','Aquatic organism whole-body biotransformation, normalized to 10 g (h⁻¹)'],
+    ['kMammalianPerHour','Mammalian whole-body biotransformation, normalized to 70 kg (h⁻¹)'],
     ['kHumanMetabolismPerHour','Human whole-body biotransformation, normalized to 70 kg (h⁻¹)']],
-  extraRates:[['kSurfacePerHour','Indoor/environmental surface reaction (h⁻¹)'],
+  extraRates:[['kSurfacePerHour','Artificial surfaces indoors or outdoors (h⁻¹)'],
     ['kInvertebratePerHour','Invertebrate biotransformation, normalized to 10 g (h⁻¹)'],
-    ['kAvianPerHour','Avian biotransformation, normalized to 1 kg (h⁻¹)']],
+    ['kAvianPerHour','Avian whole-body biotransformation, normalized to 1 kg (h⁻¹)']],
   activation:[['activationAirJPerMol','Reaction with gas-phase OH radicals (J mol⁻¹)'],
     ['activationBiodegJPerMol','Biodegradation (J mol⁻¹)'],
-    ['activationSurfaceJPerMol','Indoor/environmental surface reaction (J mol⁻¹)'],
-    ['activationBiotaJPerMol','Bird/mammal biotransformation (J mol⁻¹)'],
+    ['activationSurfaceJPerMol','Artificial surfaces indoors or outdoors (J mol⁻¹)'],
+    ['activationBiotaJPerMol','Mammalian/avian whole-body biotransformation (J mol⁻¹)'],
     ['activationMetabolismJPerMol','Human whole-body biotransformation (J mol⁻¹)']],
   other:[['fractionUnbound','Fraction unbound in plasma'],
-    ['fractionActiveReabsorption','Active renal reabsorption fraction'],
-    ['renalSecretionMultiplier','Renal secretion multiplier']]};
+    ['fractionActiveReabsorption','Renal tubular reabsorption fraction (fraction 0-1)'],
+    ['renalSecretionMultiplier','Scaling factor that adjusts glomerular filtration to account for additional contributions of tubular secretion and other unaccounted mechanisms']]};
 const biologicalIonKeys=['KneutralLipidWaterIonLPerKg',
   'KphospholipidWaterIonLPerKg','KproteinWaterIonLPerKg'];
 const biologicalIonKeySet=new Set(biologicalIonKeys);
@@ -1108,7 +1108,7 @@ function validateChemical(data,modules={environment:true,foodweb:true,human:true
   if(data?.protexFileType!=='chemical'||data.schemaVersion!=='1.0'||!data.properties)
     throw new Error('Expected a Chemical dataset with schemaVersion 1.0');
   const p=data.properties;
-  if(!positive(p.molecularWeightGPerMol))throw new Error('Molecular weight must be greater than zero');
+  if(!positive(p.molecularWeightGPerMol))throw new Error('Molar mass must be greater than zero');
   if(!missing(p.molarVolumeCm3PerMol)&&!positive(p.molarVolumeCm3PerMol))
     throw new Error('Molar volume must be positive if provided');
   for(const [key,v] of Object.entries(p)){
@@ -5524,20 +5524,20 @@ const fields={
     ['deltaUoaJPerMol','ΔUOA (J mol⁻¹)']],
   coreRates:[['kAirCm3PerMoleculeS','Reaction with gas-phase OH radicals (cm³ molecule⁻¹ s⁻¹)'],
     ['kBiodegradationPerHour','Biodegradation (h⁻¹)'],
-    ['kAquaticPerHour','Aquatic organism biotransformation, normalized to 10 g (h⁻¹)'],
-    ['kMammalianPerHour','Mammalian biotransformation, normalized to 70 kg (h⁻¹)'],
+    ['kAquaticPerHour','Aquatic organism whole-body biotransformation, normalized to 10 g (h⁻¹)'],
+    ['kMammalianPerHour','Mammalian whole-body biotransformation, normalized to 70 kg (h⁻¹)'],
     ['kHumanMetabolismPerHour','Human whole-body biotransformation, normalized to 70 kg (h⁻¹)']],
-  extraRates:[['kSurfacePerHour','Indoor/environmental surface reaction (h⁻¹)'],
+  extraRates:[['kSurfacePerHour','Artificial surfaces indoors or outdoors (h⁻¹)'],
     ['kInvertebratePerHour','Invertebrate biotransformation, normalized to 10 g (h⁻¹)'],
-    ['kAvianPerHour','Avian biotransformation, normalized to 1 kg (h⁻¹)']],
+    ['kAvianPerHour','Avian whole-body biotransformation, normalized to 1 kg (h⁻¹)']],
   activation:[['activationAirJPerMol','Reaction with gas-phase OH radicals (J mol⁻¹)'],
     ['activationBiodegJPerMol','Biodegradation (J mol⁻¹)'],
-    ['activationSurfaceJPerMol','Indoor/environmental surface reaction (J mol⁻¹)'],
-    ['activationBiotaJPerMol','Bird/mammal biotransformation (J mol⁻¹)'],
+    ['activationSurfaceJPerMol','Artificial surfaces indoors or outdoors (J mol⁻¹)'],
+    ['activationBiotaJPerMol','Mammalian/avian whole-body biotransformation (J mol⁻¹)'],
     ['activationMetabolismJPerMol','Human whole-body biotransformation (J mol⁻¹)']],
   other:[['fractionUnbound','Fraction unbound in plasma'],
-    ['fractionActiveReabsorption','Active renal reabsorption fraction'],
-    ['renalSecretionMultiplier','Renal secretion multiplier']]};
+    ['fractionActiveReabsorption','Renal tubular reabsorption fraction (fraction 0-1)'],
+    ['renalSecretionMultiplier','Scaling factor that adjusts glomerular filtration to account for additional contributions of tubular secretion and other unaccounted mechanisms']]};
 const biologicalIonKeys=['KneutralLipidWaterIonLPerKg',
   'KphospholipidWaterIonLPerKg','KproteinWaterIonLPerKg'];
 const biologicalIonKeySet=new Set(biologicalIonKeys);
@@ -5858,7 +5858,7 @@ function seriesTemplate() {
 }
 function datasetQuick(name) {
   const x=state[name];
-  if(name==='chemical')return `<div class="grid tight"><div class="card"><strong>Molecular weight</strong><span>${escape(x?.properties?.molecularWeightGPerMol)} g/mol</span></div><div class="card"><strong>Kaw neutral</strong><span>${escape(x?.properties?.KawNeutral)}</span></div><div class="card"><strong>Kow neutral</strong><span>${escape(x?.properties?.KowNeutral)}</span></div></div>`;
+  if(name==='chemical')return `<div class="grid tight"><div class="card"><strong>Molar mass</strong><span>${escape(x?.properties?.molecularWeightGPerMol)} g/mol</span></div><div class="card"><strong>Kaw neutral</strong><span>${escape(x?.properties?.KawNeutral)}</span></div><div class="card"><strong>Kow neutral</strong><span>${escape(x?.properties?.KowNeutral)}</span></div></div>`;
   if(name==='environment')return `<p><strong>${escape(x?.name)}</strong> · ${x?.compartments?.filter(c=>c.name).length||0} active compartments · 12 monthly weather values. Edit area, depth, phases and meteorology in the complete dataset editor.</p>`;
   if(name==='foodweb')return `<div class="scroll"><table><thead><tr><th>#</th><th>Organism</th><th>Taxon</th><th>Living medium</th></tr></thead><tbody>${(x?.organisms||[]).filter(o=>o.name).map(o=>`<tr><td>${o.index}</td><td>${escape(o.name)}</td><td>${escape(o.taxon)}</td><td>${escape(o.livingEnvironment)} ${escape(o.livingMedium)}</td></tr>`).join('')}</tbody></table></div>`;
   if(name==='productnuse')return `<div class="grid tight"><div class="card"><strong>Constant production</strong><span>${escape(x?.constantYear?.productionTonnes)} tonnes/year</span></div><div class="card"><strong>Annual records</strong><span>${x?.annualYears?.length||0} years</span></div></div><h3>Skin applications</h3><p class="muted">The applied-area fraction is a fraction of hands or remaining body surface, as defined in the VBA. Enter 0–1.</p><div class="grid">${(x?.skinApplications||[]).map((app,index)=>`<div class="card"><strong>${escape(app.name)}</strong><label class="check"><input type="checkbox" data-product-app="${index}" data-app-field="enabled" ${app.enabled?'checked':''}>Used</label>${[
@@ -7017,15 +7017,15 @@ function renderChemical(data,provenance={},modules={environment:true,foodweb:tru
   const envIonRows=fields.environmental.filter(([key])=>key.endsWith('Ion')||key.includes('cationExchange'));
   const bioRows=fields.biological.filter(([key])=>!key.includes('Ion'));
   const bioIonRows=fields.biological.filter(([key])=>key.includes('Ion'));
-  const identity=sections('1. Identity',`<div class="chemical-field-grid"><label>Chemical name<input class="control" data-chem-name value="${esc(data.name)}"></label>${field('molecularWeightGPerMol','Molecular weight (g/mol)')}${field('molarVolumeCm3PerMol','Molar volume (cm³/mol)')}${pka('pKaAcid','Acid dissociation pKa')}${pka('pKaBase','Base dissociation pKa')}</div>`);
+  const identity=sections('1. Identity',`<div class="chemical-field-grid"><label>Chemical name<input class="control" data-chem-name value="${esc(data.name)}"></label>${field('molecularWeightGPerMol','Molar mass (g/mol)')}${field('molarVolumeCm3PerMol','Molar volume (cm³/mol)')}${pka('pKaAcid','Acid dissociation pKa')}${pka('pKaBase','Base dissociation pKa')}</div>`);
   const partition=sections('2. Partitioning',`<h3>Neutral-species partition coefficients</h3><p class="field-note">Enter any two of three coefficients (<i>K</i>, not log <i>K</i>); PROTEX calculates the third through the thermodynamic triagular relationship.</p>${grid(fields.neutral)}${neutralNote}
-    ${ionizing?`<h3>Ionic-species partition coefficients</h3><p class="field-note">Ionic air–water partitioning defaults to zero. Ionic octanol–air partitioning is handled internally and is not an editable field.</p>${grid(ionRows)}`:''}
+    ${ionizing?`<h3>Ionic-species partition coefficients</h3><p class="field-note">PROTEX uses built-in default values.</p>${grid(ionRows)}`:''}
     ${env?`<details><summary>Environmentally relevant partition coefficients</summary>${grid([...envRows,...(ionizing?envIonRows:[])])}</details>`:''}
     ${(food||human)?`<details><summary>Biologically relevant partitioning coefficients</summary>${grid([...bioRows,...(ionizing?bioIonRows:[])])}</details>`:''}`);
-  const heats=sections('3. Heats of phase transfer',`<p class="field-note">Enter any two internal-energy changes; PROTEX calculates the third immediately. Negative values are permitted.</p>${grid(fields.heats)}`);
+  const heats=sections('3. Heats of phase transfer',`<p class="field-note">Enter any two internal-energy changes; PROTEX calculates the third immediately. Negative values mean a phase-transfer process releases heat.</p>${grid(fields.heats)}`);
   const rateMain=selected(fields.coreRates);
   const rateExtra=selected(fields.extraRates);
-  const reaction=sections('4. Reactivity',`<p class="field-note">Fields respond to the modules selected on Start. Enter nonnegative rate constants, not half-lives.</p>${grid(rateMain)}${rateExtra.length?`<details><summary>Other rate constants</summary>${grid(rateExtra)}</details>`:''}`);
+  const reaction=sections('4. Reactivity',`<p class="field-note">Enter rate constants. In case that you have a half-life (t½), convert it to the rate constant using the relationship ln2 ÷ t½.</p>${grid(rateMain)}${rateExtra.length?`<details><summary>Other rate constants</summary>${grid(rateExtra)}</details>`:''}`);
   const activation=sections('5. Activation energy',`<p class="field-note">Temperature-dependence parameters (J/mol) for selected modules.</p>${grid(selected(fields.activation))}`);
   const toxic=human?sections('6. Toxicokinetics',`<p class="field-note">Human absorption and clearance properties.</p>${grid([['PappCaco2CmPerS','Caco-2 apparent permeability (cm/s)'],...fields.other])}`):'';
   return `<h2>Chemical properties</h2>${identity}${partition}${heats}${reaction}${activation}${toxic}
